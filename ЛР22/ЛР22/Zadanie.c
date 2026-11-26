@@ -15,17 +15,14 @@ double funS(double);
 TFun select_func();
 void Out_Rez(TFun, double, double, double);
 void plot(double, double, TFun);
-double* calculate(TFun prtf, double* x, int n);
+double* transform(TFun prtf, double xmin, double dx);
 
 int main()
 {
     setlocale(LC_CTYPE, "ru_RU.UTF-8");
     int menu_choice;
-    double x, a, b, h;
+    double x, a, b, h, xmin, dx;
     TFun current_fun = NULL;
-
-    double x_arr[10] = { -2.0, -1.5, -0.5, 0.0, 0.2, 0.5, 1.0, 1.5, 2.0, 3.0 };
-    int n = 10;
 
     do {
         puts("\n(^._.^) МЕНЮ (^._.^)");
@@ -76,11 +73,15 @@ int main()
             break;
 
         case 4: {
-            double* modules = calculate(current_fun, x_arr, n);
+            printf("Введите начальное значение (xmin) и шаг (dx): ");
+            scanf("%lf%lf", &xmin, &dx);
+
+            double* modules = transform(current_fun, xmin, dx);
             if (modules != NULL) {
                 puts("\nМассив модулей значений функции:");
                 for (int i = 0; i < 10; i++) {
-                    printf(" |f(%5.2lf)| = %8.4lf\n", x_arr[i], modules[i]);
+                    double cur_x = xmin + i * dx;
+                    printf(" |f(%6.2lf)| = %8.4lf\n", cur_x, modules[i]);
                 }
                 free(modules);
             }
@@ -155,7 +156,7 @@ double funS(double x) {
 //Табулирование функции
 void Out_Rez(TFun f, double xn, double xk, double h) {
     puts("\nРезультаты табуляции:");
-    for (double x = xn; x <= xk + h / 2.0; x += h) {
+    for (double x = xn; x <= xk + 1e-9; x += h) {
         printf(" x = %5.2lf, y = %8.4lf\n", x, f(x));
     }
 }
@@ -211,20 +212,15 @@ void plot(double x0, double x1, TFun f)
     }
 }
 
-//Расчёт массива из 10 модулей значений функции
-double* calculate(TFun prtf, double* x, int n) {
+//Расчёт массива из 10 модулей значений функции на сетке xmin + i * dx
+double* transform(TFun prtf, double xmin, double dx) {
     double* res = (double*)malloc(10 * sizeof(double));
     if (res == NULL) {
         return NULL;
     }
 
     for (int i = 0; i < 10; i++) {
-        if (i < n) {
-            res[i] = fabs(prtf(x[i]));
-        }
-        else {
-            res[i] = 0.0;
-        }
+        res[i] = fabs(prtf(xmin + i * dx));
     }
 
     return res;
